@@ -10,6 +10,7 @@ import random
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+#剔除各种标签
 class Tool:
     removeo=re.compile('<o:p.*?p>')
     removea=re.compile('<.*?>|<.*?>')
@@ -21,6 +22,7 @@ class Tool:
         x=re.sub(self.removei,"",x)
         x=re.sub(self.removef,"",x)
         return x.strip()
+#代理池
 user_agent_list=['Mozilla/5.0 (Windows NT 6.1;Windows64; x64) AppleWebKit/537.36 (KHTML,like Gecko) Chrome/58.0.3029.110 Safari/537.36',"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 "
     "(KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1",
     "Mozilla/5.0 (X11; CrOS i686 2268.111.0) AppleWebKit/536.11 "
@@ -64,12 +66,13 @@ headers={'User-Agent':user_agent,
 'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9/*;q=0.8',
 'Connection':'keep-alive'
 }
+#向网页发送请求，并用'utf-8'解析响应
 def get_page_index(page):
     url='https://www.cqggzy.com/web/services/PortalsWebservice/getInfoList?response=application/json&pageIndex='+str(page+1)+'&pageSize=18&siteguid=d7878853-1c74-4913-ab15-1d72b70ff5e7&categorynum=005002&title=&infoC=&_=1549341355895'
     request=urllib2.Request(url,headers=headers)
     response=urllib2.urlopen(request)
     return response.read().decode('utf-8')
-
+#匹配网页信息
 def get_page_detail(href):
     tool=Tool()
     request=urllib2.Request(href,headers=headers)
@@ -105,6 +108,7 @@ def get_page_detail(href):
             if hasattr(e,"reason"):
                 print u"连接失败"
                 return None
+#启动网页            
 def start():
     i=1
     for page in range(872):
