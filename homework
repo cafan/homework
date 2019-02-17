@@ -1,0 +1,124 @@
+#!/usr/bin/python 
+#-*- coding:utf-8 -*-
+import urllib
+import urllib2
+import requests
+import re
+import time
+import csv
+import random
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+class Tool:
+    removeo=re.compile('<o:p.*?p>')
+    removea=re.compile('<.*?>|<.*?>')
+    removei=re.compile('&nbsp;')
+    removef=re.compile('重庆.*?百科')
+    def replace(self,x):
+        x=re.sub(self.removeo,"",x)
+        x=re.sub(self.removea,"",x)
+        x=re.sub(self.removei,"",x)
+        x=re.sub(self.removef,"",x)
+        return x.strip()
+user_agent_list=['Mozilla/5.0 (Windows NT 6.1;Windows64; x64) AppleWebKit/537.36 (KHTML,like Gecko) Chrome/58.0.3029.110 Safari/537.36',"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 "
+    "(KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1",
+    "Mozilla/5.0 (X11; CrOS i686 2268.111.0) AppleWebKit/536.11 "
+    "(KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.6 "
+    "(KHTML, like Gecko) Chrome/20.0.1092.0 Safari/536.6",
+    "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.6 "
+    "(KHTML, like Gecko) Chrome/20.0.1090.0 Safari/536.6",
+    "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 "
+    "(KHTML, like Gecko) Chrome/19.77.34.5 Safari/537.1",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/536.5 "
+    "(KHTML, like Gecko) Chrome/19.0.1084.9 Safari/536.5",
+    "Mozilla/5.0 (Windows NT 6.0) AppleWebKit/536.5 "
+    "(KHTML, like Gecko) Chrome/19.0.1084.36 Safari/536.5",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 "
+    "(KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
+    "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/536.3 "
+    "(KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_0) AppleWebKit/536.3 "
+    "(KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
+    "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 "
+    "(KHTML, like Gecko) Chrome/19.0.1062.0 Safari/536.3",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 "
+    "(KHTML, like Gecko) Chrome/19.0.1062.0 Safari/536.3",
+    "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 "
+    "(KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 "
+    "(KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
+    "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.3 "
+    "(KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
+    "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 "
+    "(KHTML, like Gecko) Chrome/19.0.1061.0 Safari/536.3",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.24 "
+    "(KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24",
+    "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/535.24 "
+    "(KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24"]
+user_agent=random.choice(user_agent_list)
+headers={'User-Agent':user_agent,
+'Cookie':'__jsluid=87edcc3cd152a9b79b51fa3fde8d7b0d;Hm_lvt_3b83938a8721dadef0b185225769572a=1549259804,1549299086,1549338974,1549428183; cookie_www=58554222; Hm_lpvt_3b83938a8721dadef0b185225769572a=1549431387',
+'Host':'www.cqggzy.com',
+'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9/*;q=0.8',
+'Connection':'keep-alive'
+}
+def get_page_index(page):
+    url='https://www.cqggzy.com/web/services/PortalsWebservice/getInfoList?response=application/json&pageIndex='+str(page+1)+'&pageSize=18&siteguid=d7878853-1c74-4913-ab15-1d72b70ff5e7&categorynum=005002&title=&infoC=&_=1549341355895'
+    request=urllib2.Request(url,headers=headers)
+    response=urllib2.urlopen(request)
+    return response.read().decode('utf-8')
+
+def get_page_detail(href):
+    tool=Tool()
+    request=urllib2.Request(href,headers=headers)
+    try:
+        response=urllib2.urlopen(request)
+        content=response.read().decode('utf-8')
+        titles=re.compile('h3.*?>(.*?)</h3>')
+        times=re.compile('【信息时间：(.*?)】')
+        pattern=re.compile('td class.*?>(.*?)</td>')
+        items=re.findall(pattern,content)
+        die=[]
+        zu=re.findall(titles,content)
+        for i in zu:
+            die.append(tool.replace(i))
+        zu=re.findall(times,content)
+        for i in zu:
+            die.append(tool.replace(i))
+        for item in items:
+            die.append(tool.replace(item))
+        pattern=re.compile('td style.*?>(.*?)</td>')
+        zu=re.findall(pattern,content)
+        for i in zu:
+            die.append(tool.replace(i))
+        pattern=re.compile('p.*?>(.*?)</p>')
+        groups=re.findall(pattern,content)
+        for group in groups:
+            die.append(tool.replace(group))
+        file=open('my.csv','ab')
+        file.write('\xEF\xBB\xBF')
+        csv_writer=csv.writer(file)
+        csv_writer.writerow(die)
+    except urllib2.URLError,e:
+            if hasattr(e,"reason"):
+                print u"连接失败"
+                return None
+def start():
+    i=1
+    for page in range(872):
+        pageCode=get_page_index(page)
+        pattern=re.compile(r'"infodate\\":\\"(.*?)-(.*?)-(.*?)\\.*?/.*?/.*?/.*?/.*?/(.*?)\\",.*?title\\".*?"(.*?)\\')
+        items=re.findall(pattern,pageCode)
+        urL='https://www.cqggzy.com/jyjg/005002/005002001/'
+        for item in items:
+            href=""
+            href=urL+item[0]+item[1]+item[2]+'/'+item[3]
+            get_page_detail(href)
+        i=i+1
+        time.sleep(3)
+        print '第'+str(i-1)+'页载入完毕'
+    return None
+t=start()
+
